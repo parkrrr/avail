@@ -59,7 +59,7 @@ export function DayColumn({
     isDragIntentRef.current = false;
     
     // Store initial time position for later drag comparison
-    // (needed to calculate event duration once drag intent is confirmed)
+    // (needed to calculate event duration if drag intent is later confirmed)
     setDragStart(minutes);
     setDragEnd(minutes);
 

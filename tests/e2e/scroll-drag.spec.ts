@@ -9,6 +9,7 @@ test.describe('Scroll vs Drag Detection', () => {
   test('should not create event when scrolling vertically', async ({ page }) => {
     const timeGrid = await page.locator('.time-grid').first();
     const gridBox = await timeGrid.boundingBox();
+    expect(gridBox).toBeTruthy();
     if (!gridBox) return;
     
     const centerX = gridBox.x + gridBox.width / 2;
@@ -34,6 +35,7 @@ test.describe('Scroll vs Drag Detection', () => {
   test('should create event when dragging vertically beyond threshold', async ({ page }) => {
     const timeGrid = await page.locator('.time-grid').first();
     const gridBox = await timeGrid.boundingBox();
+    expect(gridBox).toBeTruthy();
     if (!gridBox) return;
     
     const centerX = gridBox.x + gridBox.width / 2;
@@ -59,6 +61,7 @@ test.describe('Scroll vs Drag Detection', () => {
   test('should not create event when horizontal movement exceeds vertical', async ({ page }) => {
     const timeGrid = await page.locator('.time-grid').first();
     const gridBox = await timeGrid.boundingBox();
+    expect(gridBox).toBeTruthy();
     if (!gridBox) return;
     
     const centerX = gridBox.x + gridBox.width / 2;
@@ -83,6 +86,7 @@ test.describe('Scroll vs Drag Detection', () => {
   test('should create event with minimum duration when dragging', async ({ page }) => {
     const timeGrid = await page.locator('.time-grid').first();
     const gridBox = await timeGrid.boundingBox();
+    expect(gridBox).toBeTruthy();
     if (!gridBox) return;
     
     const centerX = gridBox.x + gridBox.width / 2;
@@ -104,6 +108,7 @@ test.describe('Scroll vs Drag Detection', () => {
   test('should create event when dragging with slight horizontal variance', async ({ page }) => {
     const timeGrid = await page.locator('.time-grid').first();
     const gridBox = await timeGrid.boundingBox();
+    expect(gridBox).toBeTruthy();
     if (!gridBox) return;
     
     const centerX = gridBox.x + gridBox.width / 2;
