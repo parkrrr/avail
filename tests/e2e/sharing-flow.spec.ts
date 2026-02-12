@@ -193,6 +193,9 @@ test.describe('Sharing Workflow', () => {
       await page.goto(shareUrl);
       await page.waitForLoadState('networkidle');
       
+      // Wait for view-only mode to be activated
+      await page.waitForSelector('div:has-text("Viewing shared availability")', { timeout: 5000 });
+      
       // In view-only mode
       const addButtons = await page.locator('button:has-text("+")').count();
       expect(addButtons).toBe(0); // Should not be able to add days

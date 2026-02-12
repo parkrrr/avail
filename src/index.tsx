@@ -21,7 +21,10 @@ export function App() {
 	const [sourceTimezone, setSourceTimezone] = useState<string>(getBrowserTimezone());
 	const [theme, setThemeState] = useState<Theme>(getInitialTheme());
 	const [showShareModal, setShowShareModal] = useState(false);
-	const [viewOnly, setViewOnly] = useState(false);
+	const [viewOnly, setViewOnly] = useState(() => {
+		// Check if URL has a hash on initial mount
+		return window.location.hash.length > 1;
+	});
 
 	// Initialize app state
 	useEffect(() => {
