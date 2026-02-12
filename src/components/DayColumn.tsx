@@ -30,6 +30,8 @@ export function DayColumn({
   const [dragEnd, setDragEnd] = useState<number | null>(null);
   const [editingDate, setEditingDate] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  const isDragIntentRef = useRef(false);
 
   const dayEvents = events.filter((e) => e.dayId === day.id);
 
@@ -51,7 +53,11 @@ export function DayColumn({
     if (!editable || !gridRef.current) return;
 
     const minutes = getMinutesFromPosition(e.clientY);
-    setDragging(true);
+    
+    // Store initial pointer position to detect drag intent
+    pointerStartRef.current = { x: e.clientX, y: e.clientY };
+    isDragIntentRef.current = false;
+    
     setDragStart(minutes);
     setDragEnd(minutes);
 
@@ -60,17 +66,36 @@ export function DayColumn({
   };
 
   const handlePointerMove = (e: PointerEvent) => {
-    if (!dragging || dragStart === null) return;
+    if (dragStart === null || !pointerStartRef.current) return;
 
-    const minutes = getMinutesFromPosition(e.clientY);
-    setDragEnd(minutes);
+    // Calculate movement distance to detect drag intent
+    const deltaX = Math.abs(e.clientX - pointerStartRef.current.x);
+    const deltaY = Math.abs(e.clientY - pointerStartRef.current.y);
+    
+    // Require at least 8px vertical movement to start dragging
+    // This prevents accidental event creation during scrolling
+    const DRAG_THRESHOLD = 8;
+    
+    if (!isDragIntentRef.current && deltaY > DRAG_THRESHOLD && deltaX < deltaY) {
+      // Vertical movement exceeds threshold and is more than horizontal - it's a drag
+      isDragIntentRef.current = true;
+      setDragging(true);
+    }
+
+    if (isDragIntentRef.current) {
+      const minutes = getMinutesFromPosition(e.clientY);
+      setDragEnd(minutes);
+    }
   };
 
   const handlePointerUp = () => {
-    if (!dragging || dragStart === null || dragEnd === null || !onAddEvent) {
+    if (!isDragIntentRef.current || dragStart === null || dragEnd === null || !onAddEvent) {
+      // Reset state
       setDragging(false);
       setDragStart(null);
       setDragEnd(null);
+      pointerStartRef.current = null;
+      isDragIntentRef.current = false;
       return;
     }
 
@@ -92,6 +117,8 @@ export function DayColumn({
     setDragging(false);
     setDragStart(null);
     setDragEnd(null);
+    pointerStartRef.current = null;
+    isDragIntentRef.current = false;
   };
 
   useEffect(() => {
