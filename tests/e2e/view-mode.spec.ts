@@ -26,13 +26,27 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const shareButton = await page.locator('.share-button');
     await shareButton.click();
     
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const shareUrl = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const shareUrl = await urlDisplay.textContent();
+    
+    // Close the modal
+    const closeButton = await page.locator('button:has-text("Close")');
+    await closeButton.click();
+    await page.waitForTimeout(200);
     
     if (shareUrl) {
-      // Navigate to shared URL
-      await page.goto(shareUrl);
-      await page.waitForLoadState('networkidle');
+      // Navigate away first to force full page reload (prevents hash loss with Vite)
+      await page.goto('about:blank');
+      await page.waitForTimeout(100);
+      
+      // Now navigate to shared URL
+      await page.goto(shareUrl, { waitUntil: 'load' });
+      
+      // Wait a bit for the app to initialize
+      await page.waitForTimeout(1000);
+      
+      // Wait for view-only mode to be activated
+      await page.waitForSelector('div:has-text("Viewing shared availability")', { timeout: 5000 });
       
       // Check that we're in view-only mode (no add buttons)
       const addButtons = await page.locator('button.add-day-button, button:has-text("+")').count();
@@ -75,13 +89,21 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const shareButton = await page.locator('.share-button');
     await shareButton.click();
     
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const shareUrl = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const shareUrl = await urlDisplay.textContent();
+    
+    // Close the modal
+    const closeButton = await page.locator('button:has-text("Close")');
+    await closeButton.click();
+    await page.waitForTimeout(200);
     
     if (shareUrl) {
       // Open in new context with different timezone
       // Note: This is a simplified test - actual timezone testing would require
       // manipulating browser's timezone settings more deeply
+      
+      // Navigate away first to force full page reload (prevents hash loss with Vite)
+      await page.goto('about:blank');
       
       await page.goto(shareUrl);
       await page.waitForLoadState('networkidle');
@@ -124,12 +146,20 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const shareButton = await page.locator('.share-button');
     await shareButton.click();
     
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const shareUrl = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const shareUrl = await urlDisplay.textContent();
+    
+    // Close the modal
+    const closeButton = await page.locator('button:has-text("Close")');
+    await closeButton.click();
+    await page.waitForTimeout(200);
     
     if (shareUrl) {
       // Set mobile viewport to see scroll indicators
       await page.setViewportSize({ width: 375, height: 667 });
+      
+      // Navigate away first to force full page reload (prevents hash loss with Vite)
+      await page.goto('about:blank');
       
       await page.goto(shareUrl);
       await page.waitForLoadState('networkidle');
@@ -167,12 +197,23 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const shareButton = await page.locator('.share-button');
     await shareButton.click();
     
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const shareUrl = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const shareUrl = await urlDisplay.textContent();
+    
+    // Close the modal
+    const closeButton = await page.locator('button:has-text("Close")');
+    await closeButton.click();
+    await page.waitForTimeout(200);
     
     if (shareUrl) {
+      // Navigate away first to force full page reload (prevents hash loss with Vite)
+      await page.goto('about:blank');
+      
       await page.goto(shareUrl);
       await page.waitForLoadState('networkidle');
+      
+      // Wait for view-only mode to be activated
+      await page.waitForSelector('div:has-text("Viewing shared availability")', { timeout: 5000 });
       
       // Try to click an event (should not be editable)
       const block = await page.locator('.availability-block').first();
@@ -212,10 +253,18 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const shareButton = await page.locator('.share-button');
     await shareButton.click();
     
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const shareUrl = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const shareUrl = await urlDisplay.textContent();
+    
+    // Close the modal
+    const closeButton = await page.locator('button:has-text("Close")');
+    await closeButton.click();
+    await page.waitForTimeout(200);
     
     if (shareUrl) {
+      // Navigate away first to force full page reload (prevents hash loss with Vite)
+      await page.goto('about:blank');
+      
       await page.goto(shareUrl);
       await page.waitForLoadState('networkidle');
       
@@ -276,10 +325,18 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const shareButton = await page.locator('.share-button');
     await shareButton.click();
     
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const shareUrl = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const shareUrl = await urlDisplay.textContent();
+    
+    // Close the modal
+    const closeButton = await page.locator('button:has-text("Close")');
+    await closeButton.click();
+    await page.waitForTimeout(200);
     
     if (shareUrl) {
+      // Navigate away first to force full page reload (prevents hash loss with Vite)
+      await page.goto('about:blank');
+      
       await page.goto(shareUrl);
       await page.waitForLoadState('networkidle');
       
@@ -297,22 +354,37 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     // Don't create any events, just get the share URL if possible
     // (May not work if share button is disabled when no events exist)
     const shareButton = await page.locator('.share-button');
-    const isEnabled = await shareButton.isEnabled();
+    const shareButtonCount = await shareButton.count();
     
-    if (isEnabled) {
-      await shareButton.click();
+    if (shareButtonCount > 0) {
+      const isEnabled = await shareButton.isEnabled();
       
-      const urlInput = await page.locator('input[type="text"], .share-url').first();
-      const shareUrl = await urlInput.inputValue();
-      
-      if (shareUrl) {
-        await page.goto(shareUrl);
-        await page.waitForLoadState('networkidle');
+      if (isEnabled) {
+        await shareButton.click();
         
-        // Should load without errors
-        const events = await page.locator('.availability-block').count();
-        expect(events).toBe(0);
+        const urlDisplay = await page.locator('.url-display').first();
+        const shareUrl = await urlDisplay.textContent();
+        
+        // Close the modal
+        const closeButton = await page.locator('button:has-text("Close")');
+        await closeButton.click();
+        await page.waitForTimeout(200);
+        
+        if (shareUrl) {
+          // Navigate away first to force full page reload (prevents hash loss with Vite)
+          await page.goto('about:blank');
+          
+          await page.goto(shareUrl);
+          await page.waitForLoadState('networkidle');
+          
+          // Should load without errors
+          const events = await page.locator('.availability-block').count();
+          expect(events).toBe(0);
+        }
       }
+    } else {
+      // Share button doesn't exist when no events - this is expected behavior
+      expect(shareButtonCount).toBe(0);
     }
   });
 });
