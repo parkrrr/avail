@@ -4,7 +4,7 @@ import { getThemeIcon, getNextTheme, setTheme } from '../utils/theme';
 
 interface Props {
   currentTheme: Theme;
-  onThemeChange: (theme: Theme);
+  onThemeChange: (theme: Theme) => void;
   disabled?: boolean;
 }
 
