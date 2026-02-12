@@ -15,12 +15,12 @@ test.describe('Mobile Event Creation', () => {
     // Get the time grid
     const timeGrid = await page.locator('.time-grid').first();
     
-    // Calculate positions for drag operation (9 AM to 10 AM)
+    // Calculate positions for drag operation
     const gridBox = await timeGrid.boundingBox();
     if (!gridBox) throw new Error('Could not get grid bounding box');
     
-    const startY = gridBox.y + 200; // Around 3:20 AM area
-    const endY = startY + 60; // Create 1-hour block
+    const startY = gridBox.y + 200; // 200 pixels from top (around 3:20 AM with 1px = 1 minute)
+    const endY = startY + 60; // 60px down = 1-hour duration
     const centerX = gridBox.x + gridBox.width / 2;
     
     // Perform drag operation
@@ -76,7 +76,7 @@ test.describe('Mobile Event Creation', () => {
     if (!gridBox) throw new Error('Could not get grid bounding box');
     
     const startY = gridBox.y + 300;
-    const endY = startY + 120; // Create 2-hour block (120 minutes)
+    const endY = startY + 120; // 120px down = 2-hour duration (1px = 1 minute)
     const centerX = gridBox.x + gridBox.width / 2;
     
     // Perform drag operation
