@@ -92,8 +92,8 @@ test.describe('Sharing Workflow', () => {
     await copyButton.click();
     
     // Check for feedback
-    const copyButton = await page.locator('button').filter({ hasText: /Copied/ });
-    await expect(copyButton).toBeVisible();
+    const feedbackButton = await page.locator('button').filter({ hasText: /Copied/ });
+    await expect(feedbackButton).toBeVisible();
   });
 
   test('should show different timezone options', async ({ page }) => {
@@ -183,6 +183,11 @@ test.describe('Sharing Workflow', () => {
     const urlDisplay = await page.locator('.url-display').first();
     const shareUrl = await urlDisplay.textContent();
     
+    // Close the modal
+    const closeButton = await page.locator('button:has-text("Close")');
+    await closeButton.click();
+    await page.waitForTimeout(200);
+    
     if (shareUrl) {
       // Open in new tab (or same page after programmatic navigation)
       await page.goto(shareUrl);
@@ -239,6 +244,11 @@ test.describe('Sharing Workflow', () => {
     
     const urlDisplay = await page.locator('.url-display').first();
     const shareUrl = await urlDisplay.textContent();
+    
+    // Close the modal
+    const closeButton = await page.locator('button:has-text("Close")');
+    await closeButton.click();
+    await page.waitForTimeout(200);
     
     if (shareUrl) {
       // Navigate to shared URL

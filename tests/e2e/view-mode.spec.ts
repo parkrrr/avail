@@ -29,6 +29,11 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const urlDisplay = await page.locator('.url-display').first();
     const shareUrl = await urlDisplay.textContent();
     
+    // Close the modal
+    const closeButton = await page.locator('button:has-text("Close")');
+    await closeButton.click();
+    await page.waitForTimeout(200);
+    
     if (shareUrl) {
       // Navigate to shared URL
       await page.goto(shareUrl);
@@ -77,6 +82,11 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     
     const urlDisplay = await page.locator('.url-display').first();
     const shareUrl = await urlDisplay.textContent();
+    
+    // Close the modal
+    const closeButton = await page.locator('button:has-text("Close")');
+    await closeButton.click();
+    await page.waitForTimeout(200);
     
     if (shareUrl) {
       // Open in new context with different timezone
@@ -127,6 +137,11 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const urlDisplay = await page.locator('.url-display').first();
     const shareUrl = await urlDisplay.textContent();
     
+    // Close the modal
+    const closeButton = await page.locator('button:has-text("Close")');
+    await closeButton.click();
+    await page.waitForTimeout(200);
+    
     if (shareUrl) {
       // Set mobile viewport to see scroll indicators
       await page.setViewportSize({ width: 375, height: 667 });
@@ -169,6 +184,11 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     
     const urlDisplay = await page.locator('.url-display').first();
     const shareUrl = await urlDisplay.textContent();
+    
+    // Close the modal
+    const closeButton = await page.locator('button:has-text("Close")');
+    await closeButton.click();
+    await page.waitForTimeout(200);
     
     if (shareUrl) {
       await page.goto(shareUrl);
@@ -214,6 +234,11 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     
     const urlDisplay = await page.locator('.url-display').first();
     const shareUrl = await urlDisplay.textContent();
+    
+    // Close the modal
+    const closeButton = await page.locator('button:has-text("Close")');
+    await closeButton.click();
+    await page.waitForTimeout(200);
     
     if (shareUrl) {
       await page.goto(shareUrl);
@@ -279,6 +304,11 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const urlDisplay = await page.locator('.url-display').first();
     const shareUrl = await urlDisplay.textContent();
     
+    // Close the modal
+    const closeButton = await page.locator('button:has-text("Close")');
+    await closeButton.click();
+    await page.waitForTimeout(200);
+    
     if (shareUrl) {
       await page.goto(shareUrl);
       await page.waitForLoadState('networkidle');
@@ -304,6 +334,11 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
       
       const urlDisplay = await page.locator('.url-display').first();
       const shareUrl = await urlDisplay.textContent();
+      
+      // Close the modal
+      const closeButton = await page.locator('button:has-text("Close")');
+      await closeButton.click();
+      await page.waitForTimeout(200);
       
       if (shareUrl) {
         await page.goto(shareUrl);
