@@ -26,8 +26,8 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const shareButton = await page.locator('.share-button');
     await shareButton.click();
     
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const shareUrl = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const shareUrl = await urlDisplay.textContent();
     
     if (shareUrl) {
       // Navigate to shared URL
@@ -75,8 +75,8 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const shareButton = await page.locator('.share-button');
     await shareButton.click();
     
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const shareUrl = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const shareUrl = await urlDisplay.textContent();
     
     if (shareUrl) {
       // Open in new context with different timezone
@@ -124,8 +124,8 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const shareButton = await page.locator('.share-button');
     await shareButton.click();
     
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const shareUrl = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const shareUrl = await urlDisplay.textContent();
     
     if (shareUrl) {
       // Set mobile viewport to see scroll indicators
@@ -167,8 +167,8 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const shareButton = await page.locator('.share-button');
     await shareButton.click();
     
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const shareUrl = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const shareUrl = await urlDisplay.textContent();
     
     if (shareUrl) {
       await page.goto(shareUrl);
@@ -212,8 +212,8 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const shareButton = await page.locator('.share-button');
     await shareButton.click();
     
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const shareUrl = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const shareUrl = await urlDisplay.textContent();
     
     if (shareUrl) {
       await page.goto(shareUrl);
@@ -276,8 +276,8 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const shareButton = await page.locator('.share-button');
     await shareButton.click();
     
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const shareUrl = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const shareUrl = await urlDisplay.textContent();
     
     if (shareUrl) {
       await page.goto(shareUrl);
@@ -302,8 +302,8 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     if (isEnabled) {
       await shareButton.click();
       
-      const urlInput = await page.locator('input[type="text"], .share-url').first();
-      const shareUrl = await urlInput.inputValue();
+      const urlDisplay = await page.locator('.url-display').first();
+      const shareUrl = await urlDisplay.textContent();
       
       if (shareUrl) {
         await page.goto(shareUrl);

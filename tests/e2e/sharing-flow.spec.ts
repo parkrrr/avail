@@ -28,7 +28,7 @@ test.describe('Sharing Workflow', () => {
     await shareButton.click();
     
     // Look for share modal
-    const shareModal = await page.locator('.share-modal');
+    const shareModal = await page.locator('.modal-overlay');
     await expect(shareModal).toBeVisible();
   });
 
@@ -54,8 +54,8 @@ test.describe('Sharing Workflow', () => {
     await shareButton.click();
     
     // Check URL display
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const urlValue = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const urlValue = await urlDisplay.textContent();
     
     if (urlValue) {
       expect(urlValue).toContain('http');
@@ -92,8 +92,8 @@ test.describe('Sharing Workflow', () => {
     await copyButton.click();
     
     // Check for feedback
-    const feedbackText = await page.locator('text="Copied"').first();
-    await expect(feedbackText).toBeVisible();
+    const copyButton = await page.locator('button').filter({ hasText: /Copied/ });
+    await expect(copyButton).toBeVisible();
   });
 
   test('should show different timezone options', async ({ page }) => {
@@ -143,8 +143,8 @@ test.describe('Sharing Workflow', () => {
     await shareButton.click();
     
     // Extract URL
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const urlValue = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const urlValue = await urlDisplay.textContent();
     
     if (urlValue && urlValue.includes('#')) {
       const hashPart = urlValue.split('#')[1];
@@ -180,8 +180,8 @@ test.describe('Sharing Workflow', () => {
     const shareButton = await page.locator('.share-button');
     await shareButton.click();
     
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const shareUrl = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const shareUrl = await urlDisplay.textContent();
     
     if (shareUrl) {
       // Open in new tab (or same page after programmatic navigation)
@@ -237,8 +237,8 @@ test.describe('Sharing Workflow', () => {
     const shareButton = await page.locator('.share-button');
     await shareButton.click();
     
-    const urlInput = await page.locator('input[type="text"], .share-url').first();
-    const shareUrl = await urlInput.inputValue();
+    const urlDisplay = await page.locator('.url-display').first();
+    const shareUrl = await urlDisplay.textContent();
     
     if (shareUrl) {
       // Navigate to shared URL
