@@ -29,6 +29,8 @@ export function DayColumn({
   const [dragStart, setDragStart] = useState<number | null>(null);
   const [dragEnd, setDragEnd] = useState<number | null>(null);
   const [editingDate, setEditingDate] = useState(false);
+  const [pointerStartPos, setPointerStartPos] = useState<{ x: number; y: number } | null>(null);
+  const [isDragCommitted, setIsDragCommitted] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
 
   const dayEvents = events.filter((e) => e.dayId === day.id);
@@ -54,16 +56,36 @@ export function DayColumn({
     setDragging(true);
     setDragStart(minutes);
     setDragEnd(minutes);
+    setPointerStartPos({ x: e.clientX, y: e.clientY });
+    setIsDragCommitted(false);
 
     // Capture pointer events
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e: PointerEvent) => {
-    if (!dragging || dragStart === null) return;
+    if (!dragging || dragStart === null || !pointerStartPos) return;
 
-    const minutes = getMinutesFromPosition(e.clientY);
-    setDragEnd(minutes);
+    const deltaX = Math.abs(e.clientX - pointerStartPos.x);
+    const deltaY = Math.abs(e.clientY - pointerStartPos.y);
+
+    // Threshold: 8px vertical movement AND vertical movement should be 1.5x horizontal
+    // This helps distinguish vertical drags (event creation) from horizontal swipes (scrolling days)
+    const DRAG_THRESHOLD = 8;
+    const VERTICAL_RATIO = 1.5;
+
+    if (!isDragCommitted && (deltaY > DRAG_THRESHOLD && deltaY > deltaX * VERTICAL_RATIO)) {
+      // User is intentionally dragging vertically - commit to drag mode
+      setIsDragCommitted(true);
+    }
+
+    if (isDragCommitted) {
+      // Prevent default to stop scrolling once we've committed to dragging
+      e.preventDefault();
+      
+      const minutes = getMinutesFromPosition(e.clientY);
+      setDragEnd(minutes);
+    }
   };
 
   const handlePointerUp = () => {
@@ -71,6 +93,8 @@ export function DayColumn({
       setDragging(false);
       setDragStart(null);
       setDragEnd(null);
+      setPointerStartPos(null);
+      setIsDragCommitted(false);
       return;
     }
 
@@ -92,6 +116,8 @@ export function DayColumn({
     setDragging(false);
     setDragStart(null);
     setDragEnd(null);
+    setPointerStartPos(null);
+    setIsDragCommitted(false);
   };
 
   useEffect(() => {
@@ -182,7 +208,10 @@ export function DayColumn({
         ref={gridRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
-        style={{ cursor: editable ? 'crosshair' : 'default' }}
+        style={{ 
+          cursor: editable ? 'crosshair' : 'default',
+          touchAction: editable ? 'none' : 'auto'
+        }}
       >
         <div className="time-markers">
           {hours.map((hour) => (
