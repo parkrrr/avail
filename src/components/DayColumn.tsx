@@ -58,6 +58,8 @@ export function DayColumn({
     pointerStartRef.current = { x: e.clientX, y: e.clientY };
     isDragIntentRef.current = false;
     
+    // Store initial time position for later drag comparison
+    // (needed to calculate event duration once drag intent is confirmed)
     setDragStart(minutes);
     setDragEnd(minutes);
 
@@ -76,8 +78,10 @@ export function DayColumn({
     // This prevents accidental event creation during scrolling
     const DRAG_THRESHOLD = 8;
     
-    if (!isDragIntentRef.current && deltaY > DRAG_THRESHOLD && deltaX < deltaY) {
-      // Vertical movement exceeds threshold and is more than horizontal - it's a drag
+    // Use ratio-based check: vertical movement should be at least 1.5x horizontal
+    // This allows for slight horizontal variance during vertical drags
+    if (!isDragIntentRef.current && deltaY > DRAG_THRESHOLD && deltaY > deltaX * 1.5) {
+      // Vertical movement exceeds threshold and is significantly more than horizontal - it's a drag
       isDragIntentRef.current = true;
       setDragging(true);
     }

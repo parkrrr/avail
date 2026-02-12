@@ -100,4 +100,29 @@ test.describe('Scroll vs Drag Detection', () => {
     const blocks = await page.locator('.availability-block').count();
     expect(blocks).toBeGreaterThan(0);
   });
+
+  test('should create event when dragging with slight horizontal variance', async ({ page }) => {
+    const timeGrid = await page.locator('.time-grid').first();
+    const gridBox = await timeGrid.boundingBox();
+    if (!gridBox) return;
+    
+    const centerX = gridBox.x + gridBox.width / 2;
+    const startY = gridBox.y + 100;
+    
+    // Initial block count
+    const initialBlocks = await page.locator('.availability-block').count();
+    
+    // Drag mostly vertically but with some horizontal movement
+    // Vertical: 60px, Horizontal: 20px (ratio 3:1, exceeds 1.5x threshold)
+    await page.mouse.move(centerX, startY);
+    await page.mouse.down();
+    await page.mouse.move(centerX + 20, startY + 60, { steps: 10 });
+    await page.mouse.up();
+    
+    await page.waitForTimeout(300);
+    
+    // A block should be created despite horizontal movement
+    const finalBlocks = await page.locator('.availability-block').count();
+    expect(finalBlocks).toBe(initialBlocks + 1);
+  });
 });
