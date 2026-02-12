@@ -22,8 +22,17 @@ export function App() {
 	const [theme, setThemeState] = useState<Theme>(getInitialTheme());
 	const [showShareModal, setShowShareModal] = useState(false);
 	const [viewOnly, setViewOnly] = useState(() => {
-		// Check if URL has a hash on initial mount
-		return window.location.hash.length > 1;
+		// Check if URL has a valid base64-encoded hash on initial mount
+		const hash = window.location.hash.slice(1);
+		if (!hash) return false;
+		
+		try {
+			// Try to decode to verify it's valid base64
+			atob(hash);
+			return true;
+		} catch {
+			return false;
+		}
 	});
 
 	// Initialize app state
