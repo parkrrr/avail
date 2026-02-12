@@ -88,7 +88,7 @@ test.describe('Scroll vs Drag Detection', () => {
     const centerX = gridBox.x + gridBox.width / 2;
     const startY = gridBox.y + 100;
     
-    // Drag exactly 15 pixels (minimum event duration)
+    // Drag 15 pixels (exceeds 8px threshold, creates minimum 15-minute event)
     await page.mouse.move(centerX, startY);
     await page.mouse.down();
     await page.mouse.move(centerX, startY + 15, { steps: 5 });
