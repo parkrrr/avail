@@ -189,6 +189,9 @@ test.describe('Sharing Workflow', () => {
     await page.waitForTimeout(200);
     
     if (shareUrl) {
+      // Navigate away first to force full page reload (prevents hash loss with Vite)
+      await page.goto('about:blank');
+      
       // Open in new tab (or same page after programmatic navigation)
       await page.goto(shareUrl);
       await page.waitForLoadState('networkidle');
@@ -254,6 +257,9 @@ test.describe('Sharing Workflow', () => {
     await page.waitForTimeout(200);
     
     if (shareUrl) {
+      // Navigate away first to force full page reload (prevents hash loss with Vite)
+      await page.goto('about:blank');
+      
       // Navigate to shared URL
       await page.goto(shareUrl);
       await page.waitForLoadState('networkidle');

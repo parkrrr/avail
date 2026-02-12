@@ -4,11 +4,13 @@ import { getThemeIcon, getNextTheme, setTheme } from '../utils/theme';
 
 interface Props {
   currentTheme: Theme;
-  onThemeChange: (theme: Theme) => void;
+  onThemeChange: (theme: Theme);
+  disabled?: boolean;
 }
 
-export function ThemeSwitcher({ currentTheme, onThemeChange }: Props) {
+export function ThemeSwitcher({ currentTheme, onThemeChange, disabled }: Props) {
   const handleClick = () => {
+    if (disabled) return;
     const nextTheme = getNextTheme(currentTheme);
     setTheme(nextTheme);
     onThemeChange(nextTheme);
@@ -18,6 +20,7 @@ export function ThemeSwitcher({ currentTheme, onThemeChange }: Props) {
     <button
       className="theme-switcher"
       onClick={handleClick}
+      disabled={disabled}
       title={`Current theme: ${currentTheme}`}
       aria-label="Toggle theme"
     >

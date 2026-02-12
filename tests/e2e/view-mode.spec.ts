@@ -35,9 +35,15 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     await page.waitForTimeout(200);
     
     if (shareUrl) {
-      // Navigate to shared URL
-      await page.goto(shareUrl);
-      await page.waitForLoadState('networkidle');
+      // Navigate away first to force full page reload (prevents hash loss with Vite)
+      await page.goto('about:blank');
+      await page.waitForTimeout(100);
+      
+      // Now navigate to shared URL
+      await page.goto(shareUrl, { waitUntil: 'load' });
+      
+      // Wait a bit for the app to initialize
+      await page.waitForTimeout(1000);
       
       // Wait for view-only mode to be activated
       await page.waitForSelector('div:has-text("Viewing shared availability")', { timeout: 5000 });
@@ -96,6 +102,9 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
       // Note: This is a simplified test - actual timezone testing would require
       // manipulating browser's timezone settings more deeply
       
+      // Navigate away first to force full page reload (prevents hash loss with Vite)
+      await page.goto('about:blank');
+      
       await page.goto(shareUrl);
       await page.waitForLoadState('networkidle');
       
@@ -149,6 +158,9 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
       // Set mobile viewport to see scroll indicators
       await page.setViewportSize({ width: 375, height: 667 });
       
+      // Navigate away first to force full page reload (prevents hash loss with Vite)
+      await page.goto('about:blank');
+      
       await page.goto(shareUrl);
       await page.waitForLoadState('networkidle');
       
@@ -194,6 +206,9 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     await page.waitForTimeout(200);
     
     if (shareUrl) {
+      // Navigate away first to force full page reload (prevents hash loss with Vite)
+      await page.goto('about:blank');
+      
       await page.goto(shareUrl);
       await page.waitForLoadState('networkidle');
       
@@ -247,6 +262,9 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     await page.waitForTimeout(200);
     
     if (shareUrl) {
+      // Navigate away first to force full page reload (prevents hash loss with Vite)
+      await page.goto('about:blank');
+      
       await page.goto(shareUrl);
       await page.waitForLoadState('networkidle');
       
@@ -316,6 +334,9 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     await page.waitForTimeout(200);
     
     if (shareUrl) {
+      // Navigate away first to force full page reload (prevents hash loss with Vite)
+      await page.goto('about:blank');
+      
       await page.goto(shareUrl);
       await page.waitForLoadState('networkidle');
       
@@ -350,6 +371,9 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
         await page.waitForTimeout(200);
         
         if (shareUrl) {
+          // Navigate away first to force full page reload (prevents hash loss with Vite)
+          await page.goto('about:blank');
+          
           await page.goto(shareUrl);
           await page.waitForLoadState('networkidle');
           

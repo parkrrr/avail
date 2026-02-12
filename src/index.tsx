@@ -138,7 +138,7 @@ export function App() {
 
 	return (
 		<div id="app">
-			<ThemeSwitcher currentTheme={theme} onThemeChange={handleThemeChange} />
+			<ThemeSwitcher currentTheme={theme} onThemeChange={handleThemeChange} disabled={viewOnly} />
 			
 			<div className="app-header">
 				<TimezoneSelector
