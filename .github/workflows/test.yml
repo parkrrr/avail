@@ -106,8 +106,18 @@ jobs:
                       summary += `- ❌ ${test.fullName}\n`;
                       if (test.failureMessages && test.failureMessages.length > 0) {
                         summary += '  ```\n';
-                        // Limit error messages to 500 chars to keep PR comment readable
-                        summary += test.failureMessages.join('\n').substring(0, 500);
+                        // Limit error messages to keep PR comment readable
+                        const errorMsg = test.failureMessages.join('\n');
+                        const maxLen = 500;
+                        if (errorMsg.length > maxLen) {
+                          // Try to truncate at a newline for cleaner output
+                          const truncated = errorMsg.substring(0, maxLen);
+                          const lastNewline = truncated.lastIndexOf('\n');
+                          summary += lastNewline > 0 ? truncated.substring(0, lastNewline) : truncated;
+                          summary += '\n  ... (truncated)';
+                        } else {
+                          summary += errorMsg;
+                        }
                         summary += '\n  ```\n';
                       }
                     }
@@ -134,7 +144,7 @@ jobs:
                       e2eFailed++;
                       failedTests.push({
                         title: spec.title,
-                        // Playwright JSON hierarchy: spec.file > subsuite.file > suite.file
+                        // File path may be at spec, subsuite, or suite level depending on test structure
                         file: spec.file || subsuite.file || suite.file
                       });
                     }
