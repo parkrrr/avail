@@ -170,33 +170,13 @@ jobs:
             
             summary += `\n---\n*Workflow run: [${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})*`;
             
-            // Find existing comment
-            const { data: comments } = await github.rest.issues.listComments({
+            // Always create a new comment to preserve test run history
+            await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
+              body: summary
             });
-            
-            const botComment = comments.find(comment => 
-              comment.user.type === 'Bot' && 
-              comment.body.includes('Test Results Summary')
-            );
-            
-            if (botComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: summary
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: summary
-              });
-            }
 
       - name: Upload test results
         if: always()
