@@ -370,14 +370,10 @@ body {
 	border-radius: 50%;
 	font-size: 0.75rem;
 	cursor: pointer;
-	display: none;
+	display: flex;
 	align-items: center;
 	justify-content: center;
 	z-index: 20;
-}
-
-.availability-block.editable:hover .block-delete {
-	display: flex;
 }
 
 .resize-handle {
