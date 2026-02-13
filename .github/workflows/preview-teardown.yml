@@ -16,7 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     # Run if PR is closed OR if the 'preview' label was removed
     if: github.event.pull_request.state == 'closed' || (github.event.action == 'unlabeled' && github.event.label.name == 'preview')
+    environment:
+      name: azure
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -24,23 +29,39 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Get storage account name from Bicep
+        id: get-name
+        uses: azure/CLI@v2
+        with:
+          inlineScript: |
+              # Use Bicep to evaluate the storage account name without deploying
+              STORAGE_ACCOUNT_NAME=$(az deployment group what-if \
+                --resource-group ${{ secrets.AZURE_RG }} \
+                --template-file ./infrastructure/preview-storage.bicep \
+                --parameters issueId=${{ github.event.pull_request.number }} \
+                --query "properties.changes[?resourceType=='Microsoft.Storage/storageAccounts'].after.name" \
+                -o tsv)
+              
+              echo "storageAccountName=${STORAGE_ACCOUNT_NAME}" >> $GITHUB_OUTPUT
+
       - name: Delete preview environment
         uses: azure/CLI@v2
         with:
           inlineScript: |
-              # Find storage account by PR number tag
-              PR_NUMBER="${{ github.event.pull_request.number }}"
+              STORAGE_ACCOUNT_NAME="${{ steps.get-name.outputs.storageAccountName }}"
               
-              # Query for storage accounts tagged with this PR number
-              STORAGE_ACCOUNT_NAME=$(az storage account list --resource-group ${{ secrets.AZURE_RG }} --query "[?tags.prNumber=='$PR_NUMBER'].name" -o tsv)
+              if [ -z "$STORAGE_ACCOUNT_NAME" ]; then
+                echo "Could not determine storage account name"
+                exit 0
+              fi
               
-              if [ -n "$STORAGE_ACCOUNT_NAME" ]; then
-                echo "Found storage account: $STORAGE_ACCOUNT_NAME"
-                echo "Deleting storage account for PR #$PR_NUMBER"
+              # Check if storage account exists
+              if az storage account show --name $STORAGE_ACCOUNT_NAME --resource-group ${{ secrets.AZURE_RG }} &> /dev/null; then
+                echo "Deleting storage account: $STORAGE_ACCOUNT_NAME"
                 az storage account delete --name $STORAGE_ACCOUNT_NAME --resource-group ${{ secrets.AZURE_RG }} --yes
                 echo "Preview environment deleted successfully"
               else
-                echo "No storage account found for PR #$PR_NUMBER, nothing to delete"
+                echo "Storage account $STORAGE_ACCOUNT_NAME not found, nothing to delete"
               fi
 
       - name: Comment PR with teardown notification
