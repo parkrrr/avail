@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'preview')
     environment:
-      name: azure-preview
+      name: azure
       url: ${{ steps.get-url.outputs.url }}
     steps:
       - name: Checkout
