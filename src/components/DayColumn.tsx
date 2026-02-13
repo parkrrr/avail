@@ -8,6 +8,7 @@ interface Props {
   day: CalendarDay;
   events: AvailabilityEvent[];
   editable: boolean;
+  totalDays?: number;
   onAddEvent?: (event: AvailabilityEvent) => void;
   onDeleteEvent?: (eventId: string) => void;
   onUpdateEvent?: (eventId: string, label: string) => void;
@@ -20,6 +21,7 @@ export function DayColumn({
   day,
   events,
   editable,
+  totalDays,
   onAddEvent,
   onDeleteEvent,
   onUpdateEvent,
@@ -105,7 +107,7 @@ export function DayColumn({
             {formatDayLabel(day.date)}
           </div>
         )}
-        {editable && onRemoveDay && (
+        {editable && onRemoveDay && totalDays !== 1 && (
           <button
             className="remove-day-btn"
             onClick={() => onRemoveDay(day.id)}

@@ -87,6 +87,7 @@ export function CalendarGrid({
             day={day}
             events={events}
             editable={editable}
+            totalDays={days.length}
             onAddEvent={onAddEvent}
             onDeleteEvent={onDeleteEvent}
             onUpdateEvent={onUpdateEvent}
