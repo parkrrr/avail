@@ -4,14 +4,9 @@ param issueId string
 @description('Location for all resources')
 param location string = resourceGroup().location
 
-// Generate unique storage account name following Azure best practices
-// - Use prefix 'availpr' to identify the purpose
-// - Use uniqueString for deterministic hash generation
-// - Ensure name is lowercase and within 24 character limit
-// uniqueString returns 13 chars, prefix is 7 chars, total = 20 chars (within 24 limit)
-var storageAccountPrefix = 'availpr'
-var uniqueSuffix = uniqueString(resourceGroup().id, issueId)
-var storageAccountName = toLower('${storageAccountPrefix}${uniqueSuffix}')
+// Generate unique storage account name
+// uniqueString returns exactly 13 chars, prefix is 7 chars, total = 20 chars (within 24 limit)
+var storageAccountName = 'stavail${uniqueString(issueId)}'
 
 // Common tags for all resources
 var commonTags = {

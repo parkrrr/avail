@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.40.2.10011",
-      "templateHash": "9131357205337112926"
+      "templateHash": "17556971224610596902"
     }
   },
   "parameters": {
@@ -24,9 +24,7 @@
     }
   },
   "variables": {
-    "storageAccountPrefix": "availpr",
-    "uniqueSuffix": "[uniqueString(resourceGroup().id, parameters('issueId'))]",
-    "storageAccountName": "[toLower(format('{0}{1}', variables('storageAccountPrefix'), variables('uniqueSuffix')))]",
+    "storageAccountName": "[format('stavail{0}', uniqueString(parameters('issueId')))]",
     "commonTags": {
       "prNumber": "[parameters('issueId')]",
       "environment": "preview",
