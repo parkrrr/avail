@@ -1,0 +1,38 @@
+version: 2
+updates:
+  # Enable npm package updates
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      dev-dependencies:
+        patterns:
+          - "@*"
+          - "vite*"
+          - "vitest*"
+          - "playwright*"
+          - "typescript"
+        update-types:
+          - "minor"
+          - "patch"
+      production-dependencies:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "@*"
+          - "vite*"
+          - "vitest*"
+          - "playwright*"
+          - "typescript"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Enable GitHub Actions updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
