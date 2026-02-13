@@ -21,59 +21,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run unit tests
-        run: npm run test:run
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Run E2E tests
-        run: npm run test:e2e
-
-      - name: Generate test summary
-        if: always()
-        run: |
-          echo "# Test Results Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Parse unit test results
-          if [ -f "test-results-unit/unit-tests.json" ]; then
-            echo "## Unit Tests" >> $GITHUB_STEP_SUMMARY
-            
-            UNIT_TOTAL=$(jq -r '.numTotalTests // 0' test-results-unit/unit-tests.json)
-            UNIT_PASSED=$(jq -r '.numPassedTests // 0' test-results-unit/unit-tests.json)
-            UNIT_FAILED=$(jq -r '.numFailedTests // 0' test-results-unit/unit-tests.json)
-            UNIT_SKIPPED=$(jq -r '.numPendingTests // 0' test-results-unit/unit-tests.json)
-            
-            echo "- **Total:** $UNIT_TOTAL" >> $GITHUB_STEP_SUMMARY
-            echo "- **Passed:** ✅ $UNIT_PASSED" >> $GITHUB_STEP_SUMMARY
-            echo "- **Failed:** ❌ $UNIT_FAILED" >> $GITHUB_STEP_SUMMARY
-            echo "- **Skipped:** ⏭️ $UNIT_SKIPPED" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # Parse E2E test results
-          if [ -f "test-results/e2e-tests.json" ]; then
-            echo "## E2E Tests" >> $GITHUB_STEP_SUMMARY
-            
-            E2E_PASSED=$(jq -r '[.suites[].suites[]?.specs[]? | select(.ok == true)] | length' test-results/e2e-tests.json)
-            E2E_FAILED=$(jq -r '[.suites[].suites[]?.specs[]? | select(.ok == false)] | length' test-results/e2e-tests.json)
-            E2E_TOTAL=$((E2E_PASSED + E2E_FAILED))
-            
-            echo "- **Total:** $E2E_TOTAL" >> $GITHUB_STEP_SUMMARY
-            echo "- **Passed:** ✅ $E2E_PASSED" >> $GITHUB_STEP_SUMMARY
-            echo "- **Failed:** ❌ $E2E_FAILED" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-          fi
+      - name: Run tests
+        uses: ./.github/actions/run-tests
 
       - name: Comment PR with test results
         if: always() && github.event_name == 'pull_request'
@@ -178,13 +127,3 @@ jobs:
               body: summary
             });
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: |
-            test-results/
-            test-results-unit/
-            playwright-report/
-          retention-days: 5
