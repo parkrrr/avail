@@ -74,25 +74,24 @@ test.describe('Basic Calendar Flow', () => {
   });
 
   test('should edit event label by clicking', async ({ page }) => {
-    // Create an event first
+    // Create an event first by tapping
     const timeGrid = await page.locator('.time-grid').first();
     const gridBox = await timeGrid.boundingBox();
     if (!gridBox) return;
     
-    const startY = gridBox.y + 100;
-    const endY = startY + 60;
+    const clickY = gridBox.y + 540; // 9 AM (540 minutes from midnight)
     const centerX = gridBox.x + gridBox.width / 2;
     
-    await page.mouse.move(centerX, startY);
-    await page.mouse.down();
-    await page.mouse.move(centerX, endY, { steps: 10 });
-    await page.mouse.up();
+    await page.mouse.click(centerX, clickY);
     
     await page.waitForTimeout(300);
     
-    // Click on the created block to edit
+    // Click on the block time text to edit (use force to bypass resize handle interception)
     const block = await page.locator('.availability-block').first();
-    await block.click();
+    const blockTime = await block.locator('.block-time');
+    await blockTime.click({ force: true });
+    
+    await page.waitForTimeout(200);
     
     // Check if edit mode is activated (should show input field or edit state)
     const editableText = await block.locator('[contenteditable], input').count();
@@ -100,29 +99,24 @@ test.describe('Basic Calendar Flow', () => {
   });
 
   test('should delete event by clicking delete button', async ({ page }) => {
-    // Create an event first
+    // Create an event first by tapping
     const timeGrid = await page.locator('.time-grid').first();
     const gridBox = await timeGrid.boundingBox();
     if (!gridBox) return;
     
-    const startY = gridBox.y + 100;
-    const endY = startY + 60;
+    const clickY = gridBox.y + 540; // 9 AM (540 minutes from midnight)
     const centerX = gridBox.x + gridBox.width / 2;
     
-    await page.mouse.move(centerX, startY);
-    await page.mouse.down();
-    await page.mouse.move(centerX, endY, { steps: 10 });
-    await page.mouse.up();
+    await page.mouse.click(centerX, clickY);
     
     await page.waitForTimeout(300);
     
     const initialBlocks = await page.locator('.availability-block').count();
     
-    // Hover to reveal delete button and click it
+    // Delete button is now always visible, no need to hover
     const block = await page.locator('.availability-block').first();
-    await block.hover();
     
-    const deleteButton = await block.locator('button.delete');
+    const deleteButton = await block.locator('.block-delete');
     if (await deleteButton.isVisible()) {
       await deleteButton.click();
       
