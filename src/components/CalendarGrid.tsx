@@ -14,6 +14,7 @@ interface Props {
   onAddEvent?: (event: AvailabilityEvent) => void;
   onDeleteEvent?: (eventId: string) => void;
   onUpdateEvent?: (eventId: string, label: string) => void;
+  onResizeEvent?: (eventId: string, startMinutes: number, endMinutes: number) => void;
   onUpdateDate?: (dayId: string, newDate: string) => void;
 }
 
@@ -27,6 +28,7 @@ export function CalendarGrid({
   onAddEvent,
   onDeleteEvent,
   onUpdateEvent,
+  onResizeEvent,
   onUpdateDate,
 }: Props) {
   const handleAddDayBefore = () => {
@@ -88,6 +90,7 @@ export function CalendarGrid({
             onAddEvent={onAddEvent}
             onDeleteEvent={onDeleteEvent}
             onUpdateEvent={onUpdateEvent}
+            onResizeEvent={onResizeEvent}
             onRemoveDay={onRemoveDay}
             onUpdateDate={onUpdateDate}
           />

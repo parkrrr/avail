@@ -379,6 +379,38 @@ body {
 	display: flex;
 }
 
+.resize-handle {
+	position: absolute;
+	left: 0;
+	right: 0;
+	height: 12px;
+	cursor: ns-resize;
+	z-index: 10;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.resize-handle-top {
+	top: 0;
+}
+
+.resize-handle-bottom {
+	bottom: 0;
+}
+
+.resize-handle::after {
+	content: '';
+	width: 30px;
+	height: 4px;
+	background: rgba(255, 255, 255, 0.5);
+	border-radius: 2px;
+}
+
+.resize-handle:hover::after {
+	background: rgba(255, 255, 255, 0.8);
+}
+
 /* Share Button */
 .share-button {
 	position: fixed;
