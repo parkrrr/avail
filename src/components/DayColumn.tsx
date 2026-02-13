@@ -9,6 +9,8 @@ interface Props {
   events: AvailabilityEvent[];
   editable: boolean;
   totalDays?: number;
+  forceShowMorningHours?: boolean;
+  forceShowEveningHours?: boolean;
   onAddEvent?: (event: AvailabilityEvent) => void;
   onDeleteEvent?: (eventId: string) => void;
   onUpdateEvent?: (eventId: string, label: string) => void;
@@ -22,6 +24,8 @@ export function DayColumn({
   events,
   editable,
   totalDays,
+  forceShowMorningHours,
+  forceShowEveningHours,
   onAddEvent,
   onDeleteEvent,
   onUpdateEvent,
@@ -40,15 +44,14 @@ export function DayColumn({
   const CORE_START_HOUR = 7;
   const CORE_END_HOUR = 19; // 7PM is hour 19
 
-  // In view-only mode, auto-expand if events exist in those time ranges
+  // In view-only mode, use forced values from parent (which checks all days)
+  // This ensures all days show the same hours for consistency
   useEffect(() => {
     if (!editable) {
-      const hasMorningEvents = dayEvents.some(e => e.startMinutes < CORE_START_HOUR * 60);
-      const hasEveningEvents = dayEvents.some(e => e.endMinutes > CORE_END_HOUR * 60);
-      setShowMorningHours(hasMorningEvents);
-      setShowEveningHours(hasEveningEvents);
+      setShowMorningHours(forceShowMorningHours || false);
+      setShowEveningHours(forceShowEveningHours || false);
     }
-  }, [editable, dayEvents]);
+  }, [editable, forceShowMorningHours, forceShowEveningHours]);
 
   // Determine which hours to show
   const startHour = showMorningHours ? 0 : CORE_START_HOUR;
