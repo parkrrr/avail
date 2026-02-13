@@ -65,7 +65,7 @@ jobs:
         uses: azure/CLI@v2
         with:
           inlineScript: |
-              az storage blob upload-batch --account-name ${{ steps.deploy.outputs.storageAccountName }} --overwrite --auth-mode key -d '$web' -s dist/avail/
+              az storage blob upload-batch --account-name ${{ steps.deploy.outputs.storageAccountName }} --overwrite --auth-mode key -d '$web' -s dist/
 
       - name: Get static website endpoint
         id: get-url
@@ -73,7 +73,7 @@ jobs:
         with:
           inlineScript: | 
               url=$(az storage account show -n ${{ steps.deploy.outputs.storageAccountName }} -g ${{ secrets.AZURE_RG }} --query "primaryEndpoints.web" --output tsv)
-              echo "url=${url}" >> $GITHUB_OUTPUT
+              echo "url=${url}avail" >> $GITHUB_OUTPUT
 
       - name: Comment PR with deployment URL
         uses: actions/github-script@v7
