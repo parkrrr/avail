@@ -51,7 +51,7 @@ jobs:
               STORAGE_ACCOUNT_NAME="${{ steps.get-name.outputs.storageAccountName }}"
               
               if [ -z "$STORAGE_ACCOUNT_NAME" ]; then
-                echo "Could not determine storage account name"
+                echo "Could not determine storage account name for PR #${{ github.event.pull_request.number }}"
                 exit 0
               fi
               
