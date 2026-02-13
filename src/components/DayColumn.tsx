@@ -30,19 +30,41 @@ export function DayColumn({
   onUpdateDate,
 }: Props) {
   const [editingDate, setEditingDate] = useState(false);
+  const [showMorningHours, setShowMorningHours] = useState(false);
+  const [showEveningHours, setShowEveningHours] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
 
   const dayEvents = events.filter((e) => e.dayId === day.id);
 
-  // Generate time markers (24 hours)
-  const hours = Array.from({ length: 24 }, (_, i) => i);
+  // Core hours: 7AM-7PM (hours 7-18, inclusive)
+  const CORE_START_HOUR = 7;
+  const CORE_END_HOUR = 19; // 7PM is hour 19
+
+  // In view-only mode, auto-expand if events exist in those time ranges
+  useEffect(() => {
+    if (!editable) {
+      const hasMorningEvents = dayEvents.some(e => e.startMinutes < CORE_START_HOUR * 60);
+      const hasEveningEvents = dayEvents.some(e => e.endMinutes > CORE_END_HOUR * 60);
+      setShowMorningHours(hasMorningEvents);
+      setShowEveningHours(hasEveningEvents);
+    }
+  }, [editable, dayEvents]);
+
+  // Determine which hours to show
+  const startHour = showMorningHours ? 0 : CORE_START_HOUR;
+  const endHour = showEveningHours ? 24 : CORE_END_HOUR;
+
+  // Generate time markers for visible hours
+  const hours = Array.from({ length: endHour - startHour }, (_, i) => i + startHour);
 
   const getMinutesFromPosition = (clientY: number): number => {
     if (!gridRef.current) return 0;
 
     const rect = gridRef.current.getBoundingClientRect();
     const y = clientY - rect.top + gridRef.current.scrollTop;
-    const minutes = Math.max(0, Math.min(1439, Math.round(y)));
+    // Account for the offset when not showing morning hours
+    const offsetMinutes = startHour * 60;
+    const minutes = Math.max(0, Math.min(1439, Math.round(y + offsetMinutes)));
 
     // Snap to 15-minute intervals
     return Math.round(minutes / 15) * 15;
@@ -118,24 +140,44 @@ export function DayColumn({
           </button>
         )}
       </div>
+      {editable && !showMorningHours && (
+        <button
+          className="expand-hours-btn expand-hours-top"
+          onClick={() => setShowMorningHours(true)}
+          aria-label="Show morning hours (midnight-7AM)"
+          title="Show morning hours (midnight-7AM)"
+        >
+          Show earlier hours ▲
+        </button>
+      )}
+      {editable && showMorningHours && (
+        <button
+          className="collapse-hours-btn collapse-hours-top"
+          onClick={() => setShowMorningHours(false)}
+          aria-label="Hide morning hours (midnight-7AM)"
+          title="Hide morning hours (midnight-7AM)"
+        >
+          Hide earlier hours ▼
+        </button>
+      )}
       <div
         className="time-grid"
         ref={gridRef}
         onClick={handleClick}
         style={{ cursor: editable ? 'pointer' : 'default' }}
       >
-        <div className="time-markers">
+        <div className="time-markers" style={{ height: `${(endHour - startHour) * 60}px` }}>
           {hours.map((hour) => (
             <div
               key={hour}
               className="time-marker"
-              style={{ top: `${hour * 60}px` }}
+              style={{ top: `${(hour - startHour) * 60}px` }}
             >
               {formatMinutes(hour * 60)}
             </div>
           ))}
         </div>
-        <div className="events-container">
+        <div className="events-container" style={{ height: `${(endHour - startHour) * 60}px` }}>
           {dayEvents.map((event) => (
             <AvailabilityBlock
               key={event.id}
@@ -145,10 +187,31 @@ export function DayColumn({
               onDelete={onDeleteEvent}
               onUpdateLabel={onUpdateEvent}
               onResize={onResizeEvent}
+              offsetMinutes={startHour * 60}
             />
           ))}
         </div>
       </div>
+      {editable && !showEveningHours && (
+        <button
+          className="expand-hours-btn expand-hours-bottom"
+          onClick={() => setShowEveningHours(true)}
+          aria-label="Show evening hours (7PM-midnight)"
+          title="Show evening hours (7PM-midnight)"
+        >
+          Show later hours ▼
+        </button>
+      )}
+      {editable && showEveningHours && (
+        <button
+          className="collapse-hours-btn collapse-hours-bottom"
+          onClick={() => setShowEveningHours(false)}
+          aria-label="Hide evening hours (7PM-midnight)"
+          title="Hide evening hours (7PM-midnight)"
+        >
+          Hide later hours ▲
+        </button>
+      )}
     </div>
   );
 }
