@@ -28,15 +28,19 @@ jobs:
         uses: azure/CLI@v2
         with:
           inlineScript: |
-              STORAGE_ACCOUNT_NAME="availpr${{ github.event.pull_request.number }}"
+              # Find storage account by PR number tag
+              PR_NUMBER="${{ github.event.pull_request.number }}"
               
-              # Check if storage account exists
-              if az storage account show --name $STORAGE_ACCOUNT_NAME --resource-group ${{ secrets.AZURE_RG }} &> /dev/null; then
-                echo "Deleting storage account: $STORAGE_ACCOUNT_NAME"
+              # Query for storage accounts tagged with this PR number
+              STORAGE_ACCOUNT_NAME=$(az storage account list --resource-group ${{ secrets.AZURE_RG }} --query "[?tags.prNumber=='$PR_NUMBER'].name" -o tsv)
+              
+              if [ -n "$STORAGE_ACCOUNT_NAME" ]; then
+                echo "Found storage account: $STORAGE_ACCOUNT_NAME"
+                echo "Deleting storage account for PR #$PR_NUMBER"
                 az storage account delete --name $STORAGE_ACCOUNT_NAME --resource-group ${{ secrets.AZURE_RG }} --yes
                 echo "Preview environment deleted successfully"
               else
-                echo "Storage account $STORAGE_ACCOUNT_NAME not found, nothing to delete"
+                echo "No storage account found for PR #$PR_NUMBER, nothing to delete"
               fi
 
       - name: Comment PR with teardown notification
