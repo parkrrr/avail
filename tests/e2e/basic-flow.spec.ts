@@ -24,7 +24,7 @@ test.describe('Basic Calendar Flow', () => {
     const gridBox = await timeGrid.boundingBox();
     if (!gridBox) return;
     
-    const clickY = gridBox.y + 540; // 9 AM (540 minutes from midnight)
+    const clickY = gridBox.y + 120; // 9 AM (2 hours after 7 AM core start = 120 minutes)
     const centerX = gridBox.x + gridBox.width / 2;
     
     // Click to create event
@@ -79,7 +79,7 @@ test.describe('Basic Calendar Flow', () => {
     const gridBox = await timeGrid.boundingBox();
     if (!gridBox) return;
     
-    const clickY = gridBox.y + 540; // 9 AM (540 minutes from midnight)
+    const clickY = gridBox.y + 120; // 9 AM (2 hours after 7 AM core start = 120 minutes)
     const centerX = gridBox.x + gridBox.width / 2;
     
     await page.mouse.click(centerX, clickY);
@@ -111,7 +111,7 @@ test.describe('Basic Calendar Flow', () => {
     const gridBox = await timeGrid.boundingBox();
     if (!gridBox) return;
     
-    const clickY = gridBox.y + 540; // 9 AM (540 minutes from midnight)
+    const clickY = gridBox.y + 120; // 9 AM (2 hours after 7 AM core start = 120 minutes)
     const centerX = gridBox.x + gridBox.width / 2;
     
     await page.mouse.click(centerX, clickY);
@@ -184,9 +184,9 @@ test.describe('Basic Calendar Flow', () => {
     expect(newThemeClass).toBe(themeClass);
   });
 
-  test('should display time markers for all hours', async ({ page }) => {
+  test('should display time markers for core hours by default', async ({ page }) => {
     const timeMarkers = await page.locator('.time-marker').count();
-    expect(timeMarkers).toBeGreaterThanOrEqual(24); // 24 hours in a day
+    expect(timeMarkers).toBe(12); // Core hours: 7AM-7PM (12 hours)
   });
 
   test('should be responsive on mobile viewport', async ({ page, context }) => {

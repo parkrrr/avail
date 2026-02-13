@@ -285,20 +285,20 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     
     const centerX = gridBox.x + gridBox.width / 2;
     
-    // Event 1: Scroll to 9 AM and create
-    await timeGrid.evaluate((el) => { el.scrollTop = 480; });
+    // Event 1: 9 AM (120 minutes from 7 AM start)
+    await timeGrid.evaluate((el) => { el.scrollTop = 60; });
     await page.waitForTimeout(200);
     await page.mouse.click(centerX, gridBox.y + 100);
     await page.waitForTimeout(300);
     
-    // Event 2: Scroll to 2 PM and create
-    await timeGrid.evaluate((el) => { el.scrollTop = 780; });
+    // Event 2: 2 PM (420 minutes from 7 AM start)
+    await timeGrid.evaluate((el) => { el.scrollTop = 350; });
     await page.waitForTimeout(200);
     await page.mouse.click(centerX, gridBox.y + 100);
     await page.waitForTimeout(300);
     
-    // Event 3: Scroll to 5 PM and create
-    await timeGrid.evaluate((el) => { el.scrollTop = 960; });
+    // Event 3: 5 PM (600 minutes from 7 AM start)
+    await timeGrid.evaluate((el) => { el.scrollTop = 530; });
     await page.waitForTimeout(200);
     await page.mouse.click(centerX, gridBox.y + 100);
     await page.waitForTimeout(300);
