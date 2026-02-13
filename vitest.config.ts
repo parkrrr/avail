@@ -6,6 +6,10 @@ export default defineConfig({
     environment: 'happy-dom',
     setupFiles: [],
     include: ['tests/unit/**/*.test.ts'],
+    reporters: process.env.CI ? ['default', 'json'] : ['default'],
+    outputFile: {
+      json: './test-results-unit/unit-tests.json'
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

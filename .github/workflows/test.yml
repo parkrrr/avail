@@ -13,6 +13,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
     
     steps:
       - name: Checkout
@@ -36,6 +39,145 @@ jobs:
       - name: Run E2E tests
         run: npm run test:e2e
 
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "# Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Parse unit test results
+          if [ -f "test-results-unit/unit-tests.json" ]; then
+            echo "## Unit Tests" >> $GITHUB_STEP_SUMMARY
+            
+            UNIT_TOTAL=$(jq -r '.numTotalTests // 0' test-results-unit/unit-tests.json)
+            UNIT_PASSED=$(jq -r '.numPassedTests // 0' test-results-unit/unit-tests.json)
+            UNIT_FAILED=$(jq -r '.numFailedTests // 0' test-results-unit/unit-tests.json)
+            UNIT_SKIPPED=$(jq -r '.numPendingTests // 0' test-results-unit/unit-tests.json)
+            
+            echo "- **Total:** $UNIT_TOTAL" >> $GITHUB_STEP_SUMMARY
+            echo "- **Passed:** ✅ $UNIT_PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "- **Failed:** ❌ $UNIT_FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "- **Skipped:** ⏭️ $UNIT_SKIPPED" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Parse E2E test results
+          if [ -f "test-results/e2e-tests.json" ]; then
+            echo "## E2E Tests" >> $GITHUB_STEP_SUMMARY
+            
+            E2E_PASSED=$(jq -r '[.suites[].suites[]?.specs[]? | select(.ok == true)] | length' test-results/e2e-tests.json)
+            E2E_FAILED=$(jq -r '[.suites[].suites[]?.specs[]? | select(.ok == false)] | length' test-results/e2e-tests.json)
+            E2E_TOTAL=$((E2E_PASSED + E2E_FAILED))
+            
+            echo "- **Total:** $E2E_TOTAL" >> $GITHUB_STEP_SUMMARY
+            echo "- **Passed:** ✅ $E2E_PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "- **Failed:** ❌ $E2E_FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Comment PR with test results
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let summary = '# Test Results Summary\n\n';
+            
+            // Parse unit test results
+            if (fs.existsSync('test-results-unit/unit-tests.json')) {
+              const unitData = JSON.parse(fs.readFileSync('test-results-unit/unit-tests.json', 'utf8'));
+              const unitTotal = unitData.numTotalTests || 0;
+              const unitPassed = unitData.numPassedTests || 0;
+              const unitFailed = unitData.numFailedTests || 0;
+              const unitSkipped = unitData.numPendingTests || 0;
+              
+              summary += '## Unit Tests\n';
+              summary += `- **Total:** ${unitTotal}\n`;
+              summary += `- **Passed:** ✅ ${unitPassed}\n`;
+              summary += `- **Failed:** ❌ ${unitFailed}\n`;
+              summary += `- **Skipped:** ⏭️ ${unitSkipped}\n\n`;
+              
+              if (unitFailed > 0 && unitData.testResults) {
+                summary += '### Failed Tests\n';
+                unitData.testResults.forEach(file => {
+                  file.assertionResults?.forEach(test => {
+                    if (test.status === 'failed') {
+                      summary += `- ❌ ${test.fullName}\n`;
+                      if (test.failureMessages && test.failureMessages.length > 0) {
+                        summary += '  ```\n';
+                        // Limit error messages to keep PR comment readable
+                        const errorMsg = test.failureMessages.join('\n');
+                        const maxLen = 500;
+                        if (errorMsg.length > maxLen) {
+                          // Try to truncate at a newline for cleaner output
+                          const truncated = errorMsg.substring(0, maxLen);
+                          const lastNewline = truncated.lastIndexOf('\n');
+                          summary += lastNewline > 0 ? truncated.substring(0, lastNewline) : truncated;
+                          summary += '\n  ... (truncated)';
+                        } else {
+                          summary += errorMsg;
+                        }
+                        summary += '\n  ```\n';
+                      }
+                    }
+                  });
+                });
+                summary += '\n';
+              }
+            }
+            
+            // Parse E2E test results
+            if (fs.existsSync('test-results/e2e-tests.json')) {
+              const e2eData = JSON.parse(fs.readFileSync('test-results/e2e-tests.json', 'utf8'));
+              
+              let e2ePassed = 0;
+              let e2eFailed = 0;
+              const failedTests = [];
+              
+              e2eData.suites?.forEach(suite => {
+                suite.suites?.forEach(subsuite => {
+                  subsuite.specs?.forEach(spec => {
+                    if (spec.ok) {
+                      e2ePassed++;
+                    } else {
+                      e2eFailed++;
+                      failedTests.push({
+                        title: spec.title,
+                        // File path may be at spec, subsuite, or suite level depending on test structure
+                        file: spec.file || subsuite.file || suite.file
+                      });
+                    }
+                  });
+                });
+              });
+              
+              const e2eTotal = e2ePassed + e2eFailed;
+              
+              summary += '## E2E Tests\n';
+              summary += `- **Total:** ${e2eTotal}\n`;
+              summary += `- **Passed:** ✅ ${e2ePassed}\n`;
+              summary += `- **Failed:** ❌ ${e2eFailed}\n\n`;
+              
+              if (failedTests.length > 0) {
+                summary += '### Failed Tests\n';
+                failedTests.forEach(test => {
+                  summary += `- ❌ ${test.title} (${test.file})\n`;
+                });
+                summary += '\n';
+              }
+            }
+            
+            summary += `\n---\n*Workflow run: [${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})*`;
+            
+            // Always create a new comment to preserve test run history
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: summary
+            });
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -43,5 +185,6 @@ jobs:
           name: test-results
           path: |
             test-results/
+            test-results-unit/
             playwright-report/
           retention-days: 5

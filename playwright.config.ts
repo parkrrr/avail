@@ -6,7 +6,9 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [['html', { open: 'never' }]],
+  reporter: process.env.CI 
+    ? [['html', { open: 'never' }], ['json', { outputFile: 'test-results/e2e-tests.json' }]]
+    : [['html', { open: 'never' }]],
   use: {
     baseURL: 'http://localhost:5173/avail',
     trace: 'on-first-retry',
