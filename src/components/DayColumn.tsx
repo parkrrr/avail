@@ -208,10 +208,7 @@ export function DayColumn({
         ref={gridRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
-        style={{ 
-          cursor: editable ? 'crosshair' : 'default',
-          touchAction: editable ? 'none' : 'auto'
-        }}
+        style={{ cursor: editable ? 'crosshair' : 'default' }}
       >
         <div className="time-markers">
           {hours.map((hour) => (

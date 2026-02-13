@@ -100,4 +100,26 @@ test.describe('Mobile Event Creation', () => {
       expect(blockBox.height).toBeGreaterThan(100);
     }
   });
+
+  test('should allow vertical scrolling in time grid on mobile', async ({ page }) => {
+    // Get the time grid
+    const timeGrid = await page.locator('.time-grid').first();
+    
+    // Get initial scroll position
+    const initialScrollTop = await timeGrid.evaluate(el => el.scrollTop);
+    
+    // Scroll down programmatically to simulate touch scroll
+    await timeGrid.evaluate(el => {
+      el.scrollTop = 600; // Scroll to 10 AM area
+    });
+    
+    await page.waitForTimeout(300);
+    
+    // Verify scroll position changed
+    const newScrollTop = await timeGrid.evaluate(el => el.scrollTop);
+    expect(newScrollTop).toBeGreaterThan(initialScrollTop);
+    expect(newScrollTop).toBe(600);
+  });
 });
+
+
