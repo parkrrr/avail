@@ -76,7 +76,7 @@ jobs:
               echo "url=${url}avail" >> $GITHUB_OUTPUT
 
       - name: Comment PR with deployment URL
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const url = '${{ steps.get-url.outputs.url }}';
