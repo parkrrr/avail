@@ -31,8 +31,9 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   }
 }
 
-// Enable static website hosting on the blob service
-// This automatically creates the $web container
+// Define blob service for the storage account
+// Note: Static website hosting is enabled via Azure CLI in the workflow
+// as Bicep doesn't directly support the staticWebsite property
 resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {
   parent: storageAccount
   name: 'default'
