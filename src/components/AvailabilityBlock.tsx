@@ -7,19 +7,20 @@ interface Props {
   event: AvailabilityEvent;
   editable: boolean;
   siblingEvents?: AvailabilityEvent[];
+  offsetMinutes?: number; // Offset for positioning when not showing full day
   onDelete?: (eventId: string) => void;
   onUpdateLabel?: (eventId: string, label: string) => void;
   onResize?: (eventId: string, startMinutes: number, endMinutes: number) => void;
 }
 
-export function AvailabilityBlock({ event, editable, siblingEvents = [], onDelete, onUpdateLabel, onResize }: Props) {
+export function AvailabilityBlock({ event, editable, siblingEvents = [], offsetMinutes = 0, onDelete, onUpdateLabel, onResize }: Props) {
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const [labelValue, setLabelValue] = useState(event.label || '');
   const [resizing, setResizing] = useState<'top' | 'bottom' | null>(null);
   const [resizeStart, setResizeStart] = useState<{ y: number; startMinutes: number; endMinutes: number } | null>(null);
   const blockRef = useRef<HTMLDivElement>(null);
 
-  const top = event.startMinutes; // 1px per minute
+  const top = event.startMinutes - offsetMinutes; // 1px per minute, adjusted for offset
   const height = event.endMinutes - event.startMinutes;
   const timeRange = `${formatMinutes(event.startMinutes)} - ${formatMinutes(event.endMinutes)}`;
 

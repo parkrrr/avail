@@ -31,6 +31,14 @@ export function CalendarGrid({
   onResizeEvent,
   onUpdateDate,
 }: Props) {
+  // In view-only mode, calculate if ANY day needs expanded hours
+  // This ensures all days show the same hours for consistency
+  const CORE_START_HOUR = 7;
+  const CORE_END_HOUR = 19;
+  
+  const shouldShowMorningHours = !editable && events.some(e => e.startMinutes < CORE_START_HOUR * 60);
+  const shouldShowEveningHours = !editable && events.some(e => e.endMinutes > CORE_END_HOUR * 60);
+
   const handleAddDayBefore = () => {
     if (!onAddDay) return;
     
@@ -88,6 +96,8 @@ export function CalendarGrid({
             events={events}
             editable={editable}
             totalDays={days.length}
+            forceShowMorningHours={shouldShowMorningHours}
+            forceShowEveningHours={shouldShowEveningHours}
             onAddEvent={onAddEvent}
             onDeleteEvent={onDeleteEvent}
             onUpdateEvent={onUpdateEvent}

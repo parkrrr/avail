@@ -291,6 +291,37 @@ body {
 	min-height: 0;
 }
 
+.expand-hours-btn,
+.collapse-hours-btn {
+	width: 100%;
+	padding: 0.5rem;
+	background: var(--bg-tertiary);
+	border: none;
+	border-top: 1px solid var(--border-color);
+	border-bottom: 1px solid var(--border-color);
+	color: var(--text-secondary);
+	font-size: 0.75rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	text-align: center;
+}
+
+.expand-hours-btn:hover,
+.collapse-hours-btn:hover {
+	background: var(--bg-secondary);
+	color: var(--text-primary);
+}
+
+.expand-hours-top,
+.collapse-hours-top {
+	border-bottom: none;
+}
+
+.expand-hours-bottom,
+.collapse-hours-bottom {
+	border-top: none;
+}
+
 .time-markers {
 	position: absolute;
 	top: 0;
