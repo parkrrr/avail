@@ -86,16 +86,15 @@ test.describe('Basic Calendar Flow', () => {
     
     await page.waitForTimeout(300);
     
-    // Get the block and try clicking multiple times to trigger edit mode
-    // The first click might be intercepted by resize handles
+    // Click on the block to activate label editing
+    // Use precise coordinates to avoid resize handles (top/bottom) and delete button (top-right)
     const block = await page.locator('.availability-block').first();
-    
-    // Click in the center of the block (using force to bypass actionability checks)
     const blockBox = await block.boundingBox();
     if (blockBox) {
-      // Click in the vertical center, slightly to the left to avoid delete button
+      // Click at 40% horizontal (avoids delete button at right) and vertical center (avoids resize handles)
       const clickX = blockBox.x + blockBox.width * 0.4;
       const clickY = blockBox.y + blockBox.height / 2;
+      // Small delay helps ensure the click event is properly processed
       await page.mouse.click(clickX, clickY, { delay: 100 });
     }
     
