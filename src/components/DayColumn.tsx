@@ -139,6 +139,7 @@ export function DayColumn({
               key={event.id}
               event={event}
               editable={editable}
+              siblingEvents={dayEvents}
               onDelete={onDeleteEvent}
               onUpdateLabel={onUpdateEvent}
               onResize={onResizeEvent}

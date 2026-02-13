@@ -6,12 +6,13 @@ import { formatMinutes } from '../utils/timeUtils';
 interface Props {
   event: AvailabilityEvent;
   editable: boolean;
+  siblingEvents?: AvailabilityEvent[];
   onDelete?: (eventId: string) => void;
   onUpdateLabel?: (eventId: string, label: string) => void;
   onResize?: (eventId: string, startMinutes: number, endMinutes: number) => void;
 }
 
-export function AvailabilityBlock({ event, editable, onDelete, onUpdateLabel, onResize }: Props) {
+export function AvailabilityBlock({ event, editable, siblingEvents = [], onDelete, onUpdateLabel, onResize }: Props) {
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const [labelValue, setLabelValue] = useState(event.label || '');
   const [resizing, setResizing] = useState<'top' | 'bottom' | null>(null);
@@ -76,10 +77,35 @@ export function AvailabilityBlock({ event, editable, onDelete, onUpdateLabel, on
     let newStartMinutes = resizeStart.startMinutes;
     let newEndMinutes = resizeStart.endMinutes;
 
+    // Find adjacent events to check for collisions
+    const otherEvents = siblingEvents.filter(e => e.id !== event.id);
+    
     if (resizing === 'top') {
+      // When dragging the top handle up (making event start earlier)
       newStartMinutes = Math.max(0, Math.min(resizeStart.endMinutes - 15, resizeStart.startMinutes + deltaMinutes));
+      
+      // Find the closest event that ends before or at this event's original start
+      const previousEvent = otherEvents
+        .filter(e => e.endMinutes <= resizeStart.startMinutes)
+        .sort((a, b) => b.endMinutes - a.endMinutes)[0];
+      
+      // Don't allow resizing past the previous event
+      if (previousEvent) {
+        newStartMinutes = Math.max(previousEvent.endMinutes, newStartMinutes);
+      }
     } else {
+      // When dragging the bottom handle down (making event end later)
       newEndMinutes = Math.min(1439, Math.max(resizeStart.startMinutes + 15, resizeStart.endMinutes + deltaMinutes));
+      
+      // Find the closest event that starts after or at this event's original end
+      const nextEvent = otherEvents
+        .filter(e => e.startMinutes >= resizeStart.endMinutes)
+        .sort((a, b) => a.startMinutes - b.startMinutes)[0];
+      
+      // Don't allow resizing past the next event
+      if (nextEvent) {
+        newEndMinutes = Math.min(nextEvent.startMinutes, newEndMinutes);
+      }
     }
 
     // Update the event
