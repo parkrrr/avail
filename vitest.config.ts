@@ -8,7 +8,7 @@ export default defineConfig({
     include: ['tests/unit/**/*.test.ts'],
     reporters: process.env.CI ? ['default', 'json'] : ['default'],
     outputFile: {
-      json: './test-results/unit-tests.json'
+      json: './test-results-unit/unit-tests.json'
     },
     coverage: {
       provider: 'v8',

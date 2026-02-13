@@ -46,13 +46,13 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Parse unit test results
-          if [ -f "test-results/unit-tests.json" ]; then
+          if [ -f "test-results-unit/unit-tests.json" ]; then
             echo "## Unit Tests" >> $GITHUB_STEP_SUMMARY
             
-            UNIT_TOTAL=$(jq -r '.numTotalTests // 0' test-results/unit-tests.json)
-            UNIT_PASSED=$(jq -r '.numPassedTests // 0' test-results/unit-tests.json)
-            UNIT_FAILED=$(jq -r '.numFailedTests // 0' test-results/unit-tests.json)
-            UNIT_SKIPPED=$(jq -r '.numPendingTests // 0' test-results/unit-tests.json)
+            UNIT_TOTAL=$(jq -r '.numTotalTests // 0' test-results-unit/unit-tests.json)
+            UNIT_PASSED=$(jq -r '.numPassedTests // 0' test-results-unit/unit-tests.json)
+            UNIT_FAILED=$(jq -r '.numFailedTests // 0' test-results-unit/unit-tests.json)
+            UNIT_SKIPPED=$(jq -r '.numPendingTests // 0' test-results-unit/unit-tests.json)
             
             echo "- **Total:** $UNIT_TOTAL" >> $GITHUB_STEP_SUMMARY
             echo "- **Passed:** ✅ $UNIT_PASSED" >> $GITHUB_STEP_SUMMARY
@@ -85,8 +85,8 @@ jobs:
             let summary = '# Test Results Summary\n\n';
             
             // Parse unit test results
-            if (fs.existsSync('test-results/unit-tests.json')) {
-              const unitData = JSON.parse(fs.readFileSync('test-results/unit-tests.json', 'utf8'));
+            if (fs.existsSync('test-results-unit/unit-tests.json')) {
+              const unitData = JSON.parse(fs.readFileSync('test-results-unit/unit-tests.json', 'utf8'));
               const unitTotal = unitData.numTotalTests || 0;
               const unitPassed = unitData.numPassedTests || 0;
               const unitFailed = unitData.numFailedTests || 0;
@@ -205,5 +205,6 @@ jobs:
           name: test-results
           path: |
             test-results/
+            test-results-unit/
             playwright-report/
           retention-days: 5
