@@ -1,0 +1,105 @@
+name: Deploy Preview Environment
+
+on:
+  pull_request:
+    types: [labeled, synchronize, opened, reopened]
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: "preview-deploy-${{ github.event.pull_request.number }}"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'preview')
+    environment:
+      name: azure
+      url: ${{ steps.get-url.outputs.url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Build
+        run: npm run build
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    
+      - name: Set up preview environment
+        id: deploy
+        uses: azure/arm-deploy@v2
+        with:
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resourceGroupName: ${{ secrets.AZURE_RG }}
+          template: ./infrastructure/preview-storage.bicep
+          parameters: issueId=${{ github.event.pull_request.number }}
+          failOnStdErr: false
+          scope: resourcegroup
+
+      - name: Enable static website hosting
+        uses: azure/CLI@v2
+        with:
+          inlineScript: | 
+              az storage blob service-properties update --account-name ${{ steps.deploy.outputs.storageAccountName }} --static-website --404-document index.html --index-document index.html
+
+      - name: Upload to preview storage
+        uses: azure/CLI@v2
+        with:
+          inlineScript: |
+              az storage blob upload-batch --account-name ${{ steps.deploy.outputs.storageAccountName }} --overwrite --auth-mode key -d '$web' -s dist/
+
+      - name: Get static website endpoint
+        id: get-url
+        uses: azure/CLI@v2
+        with:
+          inlineScript: | 
+              url=$(az storage account show -n ${{ steps.deploy.outputs.storageAccountName }} -g ${{ secrets.AZURE_RG }} --query "primaryEndpoints.web" --output tsv)
+              echo "url=${url}avail" >> $GITHUB_OUTPUT
+
+      - name: Comment PR with deployment URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.get-url.outputs.url }}';
+            const body = `## 🚀 Preview Deployment Complete
+            
+            Your preview environment has been deployed!
+            
+            **Preview URL:** ${url}
+            **PR Number:** #${{ github.event.pull_request.number }}
+            **Commit:** \`${{ github.event.pull_request.head.sha }}\`
+            
+            The preview will be automatically removed when this PR is closed or the \`preview\` label is removed.
+            
+            ---
+            *Deployed at: ${new Date().toISOString()}*`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+
+      - name: Logout from Azure
+        run: az logout
+        if: always()

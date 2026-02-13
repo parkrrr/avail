@@ -1,0 +1,66 @@
+name: Teardown Preview Environment
+
+on:
+  pull_request:
+    types: [unlabeled, closed]
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  teardown:
+    runs-on: ubuntu-latest
+    # Run if PR is closed OR if the 'preview' label was removed
+    if: github.event.pull_request.state == 'closed' || (github.event.action == 'unlabeled' && github.event.label.name == 'preview')
+    environment:
+      name: azure
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Find and delete storage account
+        uses: azure/CLI@v2
+        with:
+          inlineScript: |
+              # Find storage account by PR number tag
+              STORAGE_ACCOUNT_NAME=$(az storage account list --resource-group ${{ secrets.AZURE_RG }} \
+                --query "[?tags.prNumber=='${{ github.event.pull_request.number }}'].name" -o tsv)
+              
+              if [ -n "$STORAGE_ACCOUNT_NAME" ]; then
+                echo "Deleting storage account: $STORAGE_ACCOUNT_NAME"
+                az storage account delete --name $STORAGE_ACCOUNT_NAME --resource-group ${{ secrets.AZURE_RG }} --yes
+                echo "Preview environment deleted successfully"
+              else
+                echo "No storage account found for PR #${{ github.event.pull_request.number }}"
+              fi
+
+      - name: Comment PR with teardown notification
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `## 🧹 Preview Environment Removed
+            
+            The preview environment for PR #${{ github.event.pull_request.number }} has been removed.
+            
+            ---
+            *Removed at: ${new Date().toISOString()}*`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+
+      - name: Logout from Azure
+        run: az logout
+        if: always()
