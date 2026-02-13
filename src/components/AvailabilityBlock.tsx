@@ -1,25 +1,30 @@
 import { h } from 'preact';
-import { useState } from 'preact/hooks';
+import { useState, useRef, useEffect } from 'preact/hooks';
 import type { AvailabilityEvent } from '../types';
 import { formatMinutes } from '../utils/timeUtils';
 
 interface Props {
   event: AvailabilityEvent;
   editable: boolean;
+  siblingEvents?: AvailabilityEvent[];
   onDelete?: (eventId: string) => void;
   onUpdateLabel?: (eventId: string, label: string) => void;
+  onResize?: (eventId: string, startMinutes: number, endMinutes: number) => void;
 }
 
-export function AvailabilityBlock({ event, editable, onDelete, onUpdateLabel }: Props) {
+export function AvailabilityBlock({ event, editable, siblingEvents = [], onDelete, onUpdateLabel, onResize }: Props) {
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const [labelValue, setLabelValue] = useState(event.label || '');
+  const [resizing, setResizing] = useState<'top' | 'bottom' | null>(null);
+  const [resizeStart, setResizeStart] = useState<{ y: number; startMinutes: number; endMinutes: number } | null>(null);
+  const blockRef = useRef<HTMLDivElement>(null);
 
   const top = event.startMinutes; // 1px per minute
   const height = event.endMinutes - event.startMinutes;
   const timeRange = `${formatMinutes(event.startMinutes)} - ${formatMinutes(event.endMinutes)}`;
 
   const handleLabelClick = (e: MouseEvent) => {
-    if (editable) {
+    if (editable && !resizing) {
       e.stopPropagation();
       setIsEditingLabel(true);
     }
@@ -45,8 +50,97 @@ export function AvailabilityBlock({ event, editable, onDelete, onUpdateLabel }: 
     }
   };
 
+  const handleResizeStart = (e: PointerEvent, handle: 'top' | 'bottom') => {
+    if (!editable || !onResize) return;
+    
+    e.stopPropagation();
+    e.preventDefault();
+    
+    setResizing(handle);
+    setResizeStart({
+      y: e.clientY,
+      startMinutes: event.startMinutes,
+      endMinutes: event.endMinutes,
+    });
+
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handleResizeMove = (e: PointerEvent) => {
+    if (!resizing || !resizeStart || !onResize) return;
+
+    e.preventDefault();
+    
+    const delta = e.clientY - resizeStart.y;
+    const deltaMinutes = Math.round(delta / 15) * 15; // Snap to 15-minute intervals
+
+    let newStartMinutes = resizeStart.startMinutes;
+    let newEndMinutes = resizeStart.endMinutes;
+
+    // Find adjacent events to check for collisions
+    const otherEvents = siblingEvents.filter(e => e.id !== event.id);
+    
+    if (resizing === 'top') {
+      // When dragging the top handle up (making event start earlier)
+      newStartMinutes = Math.max(0, Math.min(resizeStart.endMinutes - 15, resizeStart.startMinutes + deltaMinutes));
+      
+      // Find the closest event that ends before or at this event's original start
+      const previousEvent = otherEvents
+        .filter(e => e.endMinutes <= resizeStart.startMinutes)
+        .sort((a, b) => b.endMinutes - a.endMinutes)[0];
+      
+      // Don't allow resizing past the previous event
+      if (previousEvent) {
+        newStartMinutes = Math.max(previousEvent.endMinutes, newStartMinutes);
+      }
+    } else {
+      // When dragging the bottom handle down (making event end later)
+      newEndMinutes = Math.min(1439, Math.max(resizeStart.startMinutes + 15, resizeStart.endMinutes + deltaMinutes));
+      
+      // Find the closest event that starts after or at this event's original end
+      const nextEvent = otherEvents
+        .filter(e => e.startMinutes >= resizeStart.endMinutes)
+        .sort((a, b) => a.startMinutes - b.startMinutes)[0];
+      
+      // Don't allow resizing past the next event
+      if (nextEvent) {
+        newEndMinutes = Math.min(nextEvent.startMinutes, newEndMinutes);
+      }
+    }
+
+    // Update the event
+    onResize(event.id, newStartMinutes, newEndMinutes);
+  };
+
+  const handleResizeEnd = () => {
+    setResizing(null);
+    setResizeStart(null);
+  };
+
+  // Add global listeners for resize
+  useEffect(() => {
+    if (!resizing) return;
+
+    const handlePointerMove = (e: PointerEvent) => {
+      handleResizeMove(e);
+    };
+
+    const handlePointerUp = () => {
+      handleResizeEnd();
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [resizing, resizeStart, onResize, event.id]);
+
   return (
     <div
+      ref={blockRef}
       className={`availability-block ${editable ? 'editable' : ''}`}
       style={{
         top: `${top}px`,
@@ -55,6 +149,13 @@ export function AvailabilityBlock({ event, editable, onDelete, onUpdateLabel }: 
       }}
       onClick={handleLabelClick}
     >
+      {editable && onResize && (
+        <div
+          className="resize-handle resize-handle-top"
+          onPointerDown={(e) => handleResizeStart(e, 'top')}
+          style={{ touchAction: 'none' }}
+        />
+      )}
       <div className="block-time">{timeRange}</div>
       {isEditingLabel ? (
         <input
@@ -86,6 +187,13 @@ export function AvailabilityBlock({ event, editable, onDelete, onUpdateLabel }: 
         >
           ×
         </button>
+      )}
+      {editable && onResize && (
+        <div
+          className="resize-handle resize-handle-bottom"
+          onPointerDown={(e) => handleResizeStart(e, 'bottom')}
+          style={{ touchAction: 'none' }}
+        />
       )}
     </div>
   );

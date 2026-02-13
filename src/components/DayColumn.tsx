@@ -11,6 +11,7 @@ interface Props {
   onAddEvent?: (event: AvailabilityEvent) => void;
   onDeleteEvent?: (eventId: string) => void;
   onUpdateEvent?: (eventId: string, label: string) => void;
+  onResizeEvent?: (eventId: string, startMinutes: number, endMinutes: number) => void;
   onRemoveDay?: (dayId: string) => void;
   onUpdateDate?: (dayId: string, newDate: string) => void;
 }
@@ -22,12 +23,10 @@ export function DayColumn({
   onAddEvent,
   onDeleteEvent,
   onUpdateEvent,
+  onResizeEvent,
   onRemoveDay,
   onUpdateDate,
 }: Props) {
-  const [dragging, setDragging] = useState(false);
-  const [dragStart, setDragStart] = useState<number | null>(null);
-  const [dragEnd, setDragEnd] = useState<number | null>(null);
   const [editingDate, setEditingDate] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -47,84 +46,24 @@ export function DayColumn({
     return Math.round(minutes / 15) * 15;
   };
 
-  const handlePointerDown = (e: PointerEvent) => {
-    if (!editable || !gridRef.current) return;
+  const handleClick = (e: MouseEvent) => {
+    if (!editable || !gridRef.current || !onAddEvent) return;
 
-    const minutes = getMinutesFromPosition(e.clientY);
-    setDragging(true);
-    setDragStart(minutes);
-    setDragEnd(minutes);
+    // Check if click was on an event block - if so, ignore
+    const target = e.target as HTMLElement;
+    if (target.closest('.availability-block')) return;
 
-    // Capture pointer events
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  };
+    const startMinutes = getMinutesFromPosition(e.clientY);
+    const endMinutes = Math.min(1439, startMinutes + 15); // Create 15-minute event
 
-  const handlePointerMove = (e: PointerEvent) => {
-    if (!dragging || dragStart === null) return;
+    const newEvent: AvailabilityEvent = {
+      id: generateId(),
+      dayId: day.id,
+      startMinutes,
+      endMinutes,
+    };
 
-    const minutes = getMinutesFromPosition(e.clientY);
-    setDragEnd(minutes);
-  };
-
-  const handlePointerUp = () => {
-    if (!dragging || dragStart === null || dragEnd === null || !onAddEvent) {
-      setDragging(false);
-      setDragStart(null);
-      setDragEnd(null);
-      return;
-    }
-
-    const startMinutes = Math.min(dragStart, dragEnd);
-    const endMinutes = Math.max(dragStart, dragEnd);
-
-    // Minimum event duration: 15 minutes
-    if (endMinutes - startMinutes >= 15) {
-      const newEvent: AvailabilityEvent = {
-        id: generateId(),
-        dayId: day.id,
-        startMinutes,
-        endMinutes,
-      };
-
-      onAddEvent(newEvent);
-    }
-
-    setDragging(false);
-    setDragStart(null);
-    setDragEnd(null);
-  };
-
-  useEffect(() => {
-    if (dragging) {
-      const handleGlobalPointerUp = () => handlePointerUp();
-      window.addEventListener('pointerup', handleGlobalPointerUp);
-      return () => window.removeEventListener('pointerup', handleGlobalPointerUp);
-    }
-  }, [dragging, dragStart, dragEnd]);
-
-  const renderDragPreview = () => {
-    if (!dragging || dragStart === null || dragEnd === null) return null;
-
-    const startMinutes = Math.min(dragStart, dragEnd);
-    const endMinutes = Math.max(dragStart, dragEnd);
-    const top = startMinutes;
-    const height = endMinutes - startMinutes;
-
-    return (
-      <div
-        style={{
-          position: 'absolute',
-          left: '4rem',
-          right: '0.5rem',
-          top: `${top}px`,
-          height: `${height}px`,
-          background: 'var(--event-bg)',
-          opacity: 0.5,
-          borderRadius: '0.375rem',
-          pointerEvents: 'none',
-        }}
-      />
-    );
+    onAddEvent(newEvent);
   };
 
   const handleDateClick = () => {
@@ -180,9 +119,8 @@ export function DayColumn({
       <div
         className="time-grid"
         ref={gridRef}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        style={{ cursor: editable ? 'crosshair' : 'default' }}
+        onClick={handleClick}
+        style={{ cursor: editable ? 'pointer' : 'default' }}
       >
         <div className="time-markers">
           {hours.map((hour) => (
@@ -201,11 +139,12 @@ export function DayColumn({
               key={event.id}
               event={event}
               editable={editable}
+              siblingEvents={dayEvents}
               onDelete={onDeleteEvent}
               onUpdateLabel={onUpdateEvent}
+              onResize={onResizeEvent}
             />
           ))}
-          {renderDragPreview()}
         </div>
       </div>
     </div>

@@ -122,6 +122,12 @@ export function App() {
 		);
 	};
 
+	const handleResizeEvent = (eventId: string, startMinutes: number, endMinutes: number) => {
+		setEvents(prev =>
+			prev.map(e => (e.id === eventId ? { ...e, startMinutes, endMinutes } : e))
+		);
+	};
+
 	const handleTimezoneChange = (newTimezone: string) => {
 		setTimezone(newTimezone);
 	};
@@ -163,6 +169,7 @@ export function App() {
 			onAddEvent={handleAddEvent}
 			onDeleteEvent={handleDeleteEvent}
 			onUpdateEvent={handleUpdateEvent}
+			onResizeEvent={handleResizeEvent}
 			onUpdateDate={handleUpdateDate}
 		/>
 

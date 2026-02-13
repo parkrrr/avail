@@ -275,7 +275,7 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
   });
 
   test('should render all events from shared data', async ({ page }) => {
-    // Create multiple events
+    // Create multiple events by tapping
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     
@@ -283,38 +283,24 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
     const gridBox = await timeGrid.boundingBox();
     if (!gridBox) return;
     
-    // Event 1: 9 AM
-    let startY = gridBox.y + 100;
-    let endY = startY + 60;
-    let centerX = gridBox.x + gridBox.width / 2;
+    const centerX = gridBox.x + gridBox.width / 2;
     
-    await page.mouse.move(centerX, startY);
-    await page.mouse.down();
-    await page.mouse.move(centerX, endY, { steps: 10 });
-    await page.mouse.up();
-    
+    // Event 1: Scroll to 9 AM and create
+    await timeGrid.evaluate((el) => { el.scrollTop = 480; });
+    await page.waitForTimeout(200);
+    await page.mouse.click(centerX, gridBox.y + 100);
     await page.waitForTimeout(300);
     
-    // Event 2: 2 PM
-    startY = gridBox.y + 180;
-    endY = startY + 60;
-    
-    await page.mouse.move(centerX, startY);
-    await page.mouse.down();
-    await page.mouse.move(centerX, endY, { steps: 10 });
-    await page.mouse.up();
-    
+    // Event 2: Scroll to 2 PM and create
+    await timeGrid.evaluate((el) => { el.scrollTop = 780; });
+    await page.waitForTimeout(200);
+    await page.mouse.click(centerX, gridBox.y + 100);
     await page.waitForTimeout(300);
     
-    // Event 3: 5 PM
-    startY = gridBox.y + 280;
-    endY = startY + 60;
-    
-    await page.mouse.move(centerX, startY);
-    await page.mouse.down();
-    await page.mouse.move(centerX, endY, { steps: 10 });
-    await page.mouse.up();
-    
+    // Event 3: Scroll to 5 PM and create
+    await timeGrid.evaluate((el) => { el.scrollTop = 960; });
+    await page.waitForTimeout(200);
+    await page.mouse.click(centerX, gridBox.y + 100);
     await page.waitForTimeout(300);
     
     // Should have 3 events
