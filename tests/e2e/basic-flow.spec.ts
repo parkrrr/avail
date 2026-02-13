@@ -86,15 +86,23 @@ test.describe('Basic Calendar Flow', () => {
     
     await page.waitForTimeout(300);
     
-    // Click on the block time text to edit (use force to bypass resize handle interception)
+    // Get the block and try clicking multiple times to trigger edit mode
+    // The first click might be intercepted by resize handles
     const block = await page.locator('.availability-block').first();
-    const blockTime = await block.locator('.block-time');
-    await blockTime.click({ force: true });
     
-    await page.waitForTimeout(200);
+    // Click in the center of the block (using force to bypass actionability checks)
+    const blockBox = await block.boundingBox();
+    if (blockBox) {
+      // Click in the vertical center, slightly to the left to avoid delete button
+      const clickX = blockBox.x + blockBox.width * 0.4;
+      const clickY = blockBox.y + blockBox.height / 2;
+      await page.mouse.click(clickX, clickY, { delay: 100 });
+    }
     
-    // Check if edit mode is activated (should show input field or edit state)
-    const editableText = await block.locator('[contenteditable], input').count();
+    await page.waitForTimeout(300);
+    
+    // Check if edit mode is activated (should show input field)
+    const editableText = await block.locator('input[type="text"]').count();
     expect(editableText).toBeGreaterThan(0);
   });
 
