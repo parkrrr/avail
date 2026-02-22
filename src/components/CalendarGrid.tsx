@@ -1,4 +1,5 @@
 import { h } from 'preact';
+import { useState, useRef, useEffect } from 'preact/hooks';
 import { format, addDays, parseISO } from 'date-fns';
 import type { CalendarDay, AvailabilityEvent } from '../types';
 import { generateId } from '../utils/timeUtils';
@@ -39,6 +40,32 @@ export function CalendarGrid({
   const shouldShowMorningHours = !editable && events.some(e => e.startMinutes < CORE_START_HOUR * 60);
   const shouldShowEveningHours = !editable && events.some(e => e.endMinutes > CORE_END_HOUR * 60);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(days.length > 1);
+
+  const updateScrollIndicators = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
+  };
+
+  useEffect(() => {
+    setCanScrollRight(days.length > 1);
+    // Re-check after a brief delay to allow layout to settle
+    const timeout = setTimeout(updateScrollIndicators, 50);
+    return () => clearTimeout(timeout);
+  }, [days.length]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', updateScrollIndicators, { passive: true });
+    updateScrollIndicators();
+    return () => el.removeEventListener('scroll', updateScrollIndicators);
+  }, []);
+
   const handleAddDayBefore = () => {
     if (!onAddDay) return;
     
@@ -73,8 +100,8 @@ export function CalendarGrid({
 
   return (
     <div className={`calendar-grid ${viewOnly ? 'view-only' : ''}`}>
-      <div className="calendar-container">
-        {viewOnly && days.length > 1 && (
+      <div className="calendar-container" ref={containerRef}>
+        {viewOnly && days.length > 1 && canScrollLeft && (
           <div className="scroll-indicator scroll-indicator-left">‹</div>
         )}
         {editable && (
@@ -119,7 +146,7 @@ export function CalendarGrid({
           </button>
         )}
         
-        {viewOnly && days.length > 1 && (
+        {viewOnly && days.length > 1 && canScrollRight && (
           <div className="scroll-indicator scroll-indicator-right">›</div>
         )}
       </div>

@@ -163,12 +163,22 @@ test.describe('View-Only Mode & Timezone Conversion', () => {
       
       await page.goto(shareUrl);
       await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(300);
       
-      // Scroll indicators should be visible (‹ › symbols)
-      // They appear when there are multiple days in view-only mobile mode
-      const indicators = await page.locator('.scroll-indicator').count();
-      // May have 0, 1, or 2 indicators depending on scroll position
-      expect(indicators).toBeGreaterThanOrEqual(0);
+      // At scroll start: only the right indicator should be visible (can scroll right, not left)
+      const leftIndicator = page.locator('.scroll-indicator-left');
+      const rightIndicator = page.locator('.scroll-indicator-right');
+      await expect(leftIndicator).not.toBeVisible();
+      await expect(rightIndicator).toBeVisible();
+      
+      // Scroll to the end of the container
+      const container = page.locator('.calendar-container');
+      await container.evaluate((el) => { el.scrollLeft = el.scrollWidth; });
+      await page.waitForTimeout(300);
+      
+      // At scroll end: only the left indicator should be visible (can scroll left, not right)
+      await expect(leftIndicator).toBeVisible();
+      await expect(rightIndicator).not.toBeVisible();
     }
   });
 
