@@ -56,20 +56,20 @@ jobs:
           scope: resourcegroup
 
       - name: Enable static website hosting
-        uses: azure/CLI@v2
+        uses: azure/CLI@v3
         with:
           inlineScript: | 
               az storage blob service-properties update --account-name ${{ steps.deploy.outputs.storageAccountName }} --static-website --404-document index.html --index-document index.html
 
       - name: Upload to preview storage
-        uses: azure/CLI@v2
+        uses: azure/CLI@v3
         with:
           inlineScript: |
               az storage blob upload-batch --account-name ${{ steps.deploy.outputs.storageAccountName }} --overwrite --auth-mode key -d '$web' -s dist/
 
       - name: Get static website endpoint
         id: get-url
-        uses: azure/CLI@v2
+        uses: azure/CLI@v3
         with:
           inlineScript: | 
               url=$(az storage account show -n ${{ steps.deploy.outputs.storageAccountName }} -g ${{ secrets.AZURE_RG }} --query "primaryEndpoints.web" --output tsv)
